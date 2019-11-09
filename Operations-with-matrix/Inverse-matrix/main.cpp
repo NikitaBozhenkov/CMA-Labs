@@ -57,8 +57,8 @@ int main() {
   for(size_t i = 0; i < order; ++i) {
     E[i][i] = 1;
     for(size_t j = 0; j < std::min(order, i + 2); ++j) {
-      //std::cin >> matrix[i][j];
-      matrix[i][j] = (rand() % 100) * 0.1;
+        std::cin >> matrix[i][j];
+      //matrix[i][j] = (rand() % 100) * 0.1;
     }
     for(size_t j = order - 1; j >= i + 2; --j) {
       matrix[i][j] = 0;
@@ -79,7 +79,11 @@ int main() {
   }
 
   for(int i = 0; i <= order - 1; ++i) {
-    VectorDiv(E[i], matrix[i][i]);
+    if(matrix[i][i] >= 0.00001) {
+      VectorDiv(E[i], matrix[i][i]);
+    } else {
+      std::cout << "TRUBA" << std::endl;
+    }
     for(int j = i + 1; j < order; ++j) {
       for(int t = 0; t < order; ++t) {
         E[j][t] -= E[i][t]*matrix[j][i];
