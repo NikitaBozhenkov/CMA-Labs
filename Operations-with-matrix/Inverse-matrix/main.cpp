@@ -79,10 +79,11 @@ int main() {
   }
 
   for(int i = 0; i <= order - 1; ++i) {
-    if(matrix[i][i] >= 0.00001) {
+    if(std::abs(matrix[i][i]) >= 0.00001) {
       VectorDiv(E[i], matrix[i][i]);
     } else {
       std::cout << "TRUBA" << std::endl;
+      return 0;
     }
     for(int j = i + 1; j < order; ++j) {
       for(int t = 0; t < order; ++t) {
