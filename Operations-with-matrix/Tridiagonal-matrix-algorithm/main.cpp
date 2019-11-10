@@ -9,7 +9,7 @@ int main() {
   std::cin >> order;
   Matrix matrix(order);
   std::vector<double> B = {
-      5, 6, 2, 0, 7, -8, -9, 6, 7, -3
+      0, 10, 3, 1
   };
 
   for(int i = 0; i < order; ++i) {
@@ -25,22 +25,8 @@ int main() {
     }
   }
 
-  // hard-code for the first iteration
-//  if(std::abs(matrix[0][0]) < std::abs(matrix[1][0])) {
-//    std::swap(matrix[0], matrix[1]);
-//  }
-//  if (matrix[0][0] - 1 > 0.00001) {
-//    double div_value = matrix[0][0];
-//    for(auto& elem : matrix[0]) {
-//      elem /= div_value;
-//    }
-//  }
-//  for(int i = 0; i < 3; ++i) {
-//    matrix[1][i] -= matrix[0][i];
-//  }
-
   for(int i = 0; i < order-1; ++i) {
-    // findind max
+    // finding max
     if (std::abs(matrix[i][1]) < std::abs(matrix[i+1][0])) {
       // good swap
       for(int j = 1; j < 4; ++j) {
@@ -53,6 +39,10 @@ int main() {
 
     //making [i][i]-elem = 1
     double div_value = matrix[i][1];
+    if (std::abs(matrix[i][1]) < 0.00001) {
+      std::cout << "TRUBA. Degenerate system";
+      return 0;
+    }
     B[i] /= div_value;
     for(int j = 1; j < 4; ++j) {
       matrix[i][j] /= div_value;

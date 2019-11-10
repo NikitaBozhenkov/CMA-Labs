@@ -5,27 +5,6 @@
 
 #define Matrix std::vector<std::vector<double>>
 
-_inline void VectorGaussSub(std::vector<double>& vec1, const std::vector<double>& vec2, int n) {
-  if (vec1[n] >= 0.0001) {
-    double div = vec1[n] / vec2[n];
-    for(int i = 0; i < n; ++i) {
-      vec1[i] -= vec2[i] * div;
-    }
-  }
-}
-
-_inline void IdentityGaussSub(std::vector<double>& vec1, const std::vector<double>& vec2, double mul_value) {
-  for(int i = 0; i < vec1.size(); ++i) {
-    vec1[i] -= vec2[i] * mul_value;
-  }
-}
-
-_inline void VectorDiv(std::vector<double>& vec1, const double& value) {
-  for(auto& elem : vec1) {
-    elem /= value;
-  }
-}
-
 Matrix MatrixMul(const Matrix& a, const Matrix& b) {
   Matrix r(a.size());
   for(auto& i : r) {
@@ -128,12 +107,6 @@ int main() {
 //      }
 //    }
 //  }
-//
-//  for(int i = 0; i < order; ++i) {
-//    for(int j = 0; j < order; ++j) {
-//      std::cout << E[i][j] << " & ";
-//    }
-//    std::cout << "\\\\" << std::endl;
-//  }
+
   return 0;
 }

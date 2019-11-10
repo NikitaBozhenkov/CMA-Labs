@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 #define Matrix std::vector<std::vector<double>>
 
@@ -10,20 +11,24 @@ int main() {
 //  Matrix L(order);
   Matrix E(order);
   std::vector<double> B = {
-      1, 2
+      11, 511, 9841, 87381, 488281, 2015539, 6725601, 19173961, 48427561
+
   };
   for(int i = 0; i < order; ++i) {
     matrix[i].resize(order);
-//    L[i].resize(order);
     E[i].resize(order);
   }
 
+  std::cout << "A" << std::endl;
   for(size_t i = 0; i < order; ++i) {
     E[i][i] = 1;
     for(size_t j = 0; j < order; ++j) {
-      std::cin >> matrix[i][j];
+      matrix[i][j] = std::pow(i+1, j);
+      std::cout << matrix[i][j] << " & ";
+      //std::cin >> matrix[i][j];
       //matrix[i][j] = (rand() % 100) * 0.1;
     }
+    std::cout << "\\\\" << std::endl;
   }
 
   std::vector<int> this_permutation(order);
@@ -49,9 +54,6 @@ int main() {
       std::swap(matrix[i], matrix[max_index]);
       std::swap(this_permutation[i], this_permutation[max_index]);
     }
-//    if(i != 0) {
-//      std::swap(L[i], L[max_index]);
-//    }
 
     //filling L[i][i] elem
     if (matrix[i][i] == 0) {
@@ -73,6 +75,20 @@ int main() {
       matrix[i][j] /= matrix[i][i];
     }
   }
+
+  std::cout << "LU" << std::endl;
+  for(int i = 0; i < order; ++i) {
+    for(int j = 0; j < order; ++j) {
+      std::cout << matrix[i][j] << " & ";
+    }
+    std::cout << "\\\\" << std::endl;
+  }
+
+  std::cout << "Permutations" << std::endl;
+  for(int i = 0; i < order; ++i) {
+    std::cout << this_permutation[i] << " \\\\ ";
+  }
+  std::cout << std::endl;
 
 //  DY_1=B
   for(int i = 0; i < order; ++i) {

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <iomanip>
 
 _inline double AXB_Norm(int n, const std::vector<double>& xi) {
   double max_elem = -INT32_MAX;
@@ -36,11 +37,9 @@ int main() {
   }
 
   //Relaxation
-  //
-  int iters = 0;
+  int iterations = 0;
   while (AXB_Norm(n, xi) > 1e-10) {
-    ++iters;
-    std::cout << iters << std::endl;
+    ++iterations;
     for(int i = 0; i <= 2; ++i) {
       if (i == 0) {
         double second_till_last_sum = xi[1] * (n-2) + xi[2];
@@ -53,9 +52,10 @@ int main() {
       }
     }
   }
+  std::cout << iterations << std::endl;
 
   for(int i = 0; i < 3; ++i) {
-    std::cout << xi[i] << " ";
+    std::cout << std::fixed << std::setprecision(13) << xi[i] << " ";
   }
 
   return 0;
