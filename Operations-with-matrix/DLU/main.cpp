@@ -7,14 +7,14 @@ int main() {
   size_t order;
   std::cin >> order;
   Matrix matrix(order);
-  Matrix L(order);
+//  Matrix L(order);
   Matrix E(order);
   std::vector<double> B = {
-      6, 14, 5
+      1, 2
   };
   for(int i = 0; i < order; ++i) {
     matrix[i].resize(order);
-    L[i].resize(order);
+//    L[i].resize(order);
     E[i].resize(order);
   }
 
@@ -32,7 +32,7 @@ int main() {
     this_permutation[i] = i;
   }
 
-  for(int i = 0; i < order; ++i) {
+  for(int i = 0; i < order-1; ++i) {
     //finding max-abs elem
     int max_index = i;
     double max_elem = std::abs(matrix[i][i]);
@@ -49,32 +49,28 @@ int main() {
       std::swap(matrix[i], matrix[max_index]);
       std::swap(this_permutation[i], this_permutation[max_index]);
     }
-    if(i != 0) {
-      std::swap(L[i], L[max_index]);
-    }
+//    if(i != 0) {
+//      std::swap(L[i], L[max_index]);
+//    }
 
     //filling L[i][i] elem
-    if (matrix[i][i] != 0) {
-      L[i][i] = matrix[i][i];
-    } else {
+    if (matrix[i][i] == 0) {
       std::cout << "TRUBA" << std::endl;
       return 0;
-    }
-
-    //Making [i][i]-elem = 1
-    for(int j = i; j < order; ++j) {
-      matrix[i][j] /= L[i][i];
     }
 
     //filling L matrix and doing Gauss
     for(int j = i + 1; j < order; ++j) {
       if (matrix[j][i] != 0) {
-        L[j][i] = matrix[j][i];
-        matrix[j][i] = 0;
-        for(int t = j; t < order; ++t) {
-          matrix[j][t] -= L[j][i] * matrix[i][t];
+        double mul_value = matrix[j][i] / matrix[i][i];
+        for(int t = i+1; t < order; ++t) {
+          matrix[j][t] -= mul_value * matrix[i][t];
         }
       }
+    }
+
+    for(int j = i+1; j < order; ++j) {
+      matrix[i][j] /= matrix[i][i];
     }
   }
 
@@ -89,10 +85,14 @@ int main() {
   //LY_2 = B'
   for(int i = 0; i < order; ++i) {
     if(std::abs(B[i]) > 0.00001) {
-      B[i] /= L[i][i];
-      L[i][i] = 1;
+      if (matrix[i][i] == 0) {
+        std::cout << "Degenerate system";
+        return 0;
+      }
+      B[i] /= matrix[i][i];
+      //matrix[i][i] = 1;
       for(int j = i + 1; j < order; ++j) {
-        B[j] -= B[i] * L[j][i];
+        B[j] -= B[i] * matrix[j][i];
       }
     }
   }
@@ -104,6 +104,10 @@ int main() {
         B[j] -= B[i] * matrix[j][i];
       }
     }
+  }
+
+  for(const auto& elem : B) {
+    std::cout << elem << " ";
   }
 
   return 0;
