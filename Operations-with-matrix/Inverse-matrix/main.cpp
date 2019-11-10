@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <ctime>
+#include <iomanip>
 
 #define Matrix std::vector<std::vector<double>>
 
@@ -57,8 +58,8 @@ int main() {
   for(size_t i = 0; i < order; ++i) {
     E[i][i] = 1;
     for(size_t j = 0; j < std::min(order, i + 2); ++j) {
-        std::cin >> matrix[i][j];
-      //matrix[i][j] = (rand() % 100) * 0.1;
+        //std::cin >> matrix[i][j];
+      matrix[i][j] = (rand() % 100) * 0.1;
     }
     for(size_t j = order - 1; j >= i + 2; --j) {
       matrix[i][j] = 0;
@@ -74,13 +75,32 @@ int main() {
       matrix[i].swap(matrix[i-1]);
       E[i-1].swap(E[i]);
     }
-    VectorGaussSub(matrix[i - 1], matrix[i], i);
-    IdentityGaussSub(E[i-1],E[i], matrix[i-1][i]/matrix[i][i]);
+
+    // Dividing by [i][i]-elem
+    double div_value = matrix[i][i];
+    for(int j = i-1; j >= 0; --j) {
+      matrix[i][j] /= div_value;
+    }
+    for(auto& elem : E[i]) {
+      elem /= div_value;
+    }
+
+    //Subtracting rows
+    double mul_value = matrix[i-1][i];
+    for(int j = i-1; j >= 0; --j) {
+      matrix[i-1][j] -= matrix[i][j] * mul_value;
+    }
+    for(int j = 0; j < order; ++j) {
+      E[i-1][j] -= E[i][j] * mul_value;
+    }
+  }
+
+  for(int i = 0; i < order; ++i) {
+    E[0][i] /= matrix[0][0];
   }
 
   for(int i = 0; i <= order - 1; ++i) {
     if(std::abs(matrix[i][i]) >= 0.00001) {
-      VectorDiv(E[i], matrix[i][i]);
     } else {
       std::cout << "TRUBA" << std::endl;
       return 0;
@@ -92,29 +112,28 @@ int main() {
     }
   }
 
+  clock_t end_time = clock();
+
+  long double search_time = (long double) (end_time - start_time) / CLOCKS_PER_SEC;
+  std::cout << search_time << std::endl;
+
+//  Matrix check = MatrixMul(matrix_copy,E);
+//  for(int i = 0; i < order; ++i) {
+//    if (std::abs(check[i][i] - 1) > 1e-7) {
+//      std::cout << "BAD";
+//    }
+//    for(int j = 0; j < order; ++j) {
+//      if (check[i][j] > 1e-7 && j != i) {
+//        std::cout << "BAD";
+//      }
+//    }
+//  }
+//
 //  for(int i = 0; i < order; ++i) {
 //    for(int j = 0; j < order; ++j) {
 //      std::cout << E[i][j] << " ";
 //    }
 //    std::cout << std::endl;
 //  }
-
-  clock_t end_time = clock();
-
-  long double search_time = (long double) (end_time - start_time) / CLOCKS_PER_SEC;
-  std::cout << search_time;
-//
-//  Matrix check = MatrixMul(matrix_copy,E);
-//  for(int i = 0; i < order; ++i) {
-//    if (std::abs(check[i][i] - 1) > 1e-7) {
-//      std::cout << "FUCK";
-//    }
-//    for(int j = 0; j < order; ++j) {
-//      if (check[i][j] > 1e-7 && j != i) {
-//        std::cout << "FUCK";
-//      }
-//    }
-//  }
-
   return 0;
 }
