@@ -61,7 +61,8 @@ int main() {
       std::cin >> A[i][j];
     }
   }
-  std::vector<double> uKMM(n), uKM(n), uK(n), uKP(n), vKMM(n), vKM(n), vK(n), vKP(n), eigen_vec_2(n);
+  std::vector<double> uKMM(n), uKM(n), uK(n), uKP(n), vKMM(n), vKM(n), vK(n), vKP(n),
+      eigen_vec_21(n), eigen_vec_22(n);
   std::vector<std::complex<double>> eigen_vec_31(n), eigen_vec_32(n);
   for(int i = 0; i < n; ++i) {
     uK[i] = rand();
@@ -104,7 +105,11 @@ int main() {
 
     //Checking break condition
     if (MaxNorm(ComputeAvMinusLvNorm(A, uK, lambdaK1)) < 1e-12) {
-      std::cout << lambdaK1 << std::endl;
+      std::cout << "One lambda: " << lambdaK1 << "." << std::endl << "Eigenvector: [";
+      for(const auto& elem : uK) {
+        std::cout << elem << " ";
+      }
+      std::cout << "]" << std::endl;
       break;
     }
 
@@ -123,85 +128,88 @@ int main() {
 
     // Computing eigenvector
     for(int i = 0; i < n; ++i) {
-      eigen_vec_2[i] = vK[i] + lambdaK2 * uKM[i];
+      eigen_vec_21[i] = vK[i] + lambdaK2 * uKM[i];
+      eigen_vec_22[i] = vK[i] - lambdaK2 * uKM[i];
     }
 
-    if (MaxNorm(ComputeAvMinusLvNorm(A, eigen_vec_2, lambdaK2)) < 1e-12) {
-      std::cout << lambdaK2 << " " << -lambdaK2 << std::endl;
+    if (MaxNorm(ComputeAvMinusLvNorm(A, eigen_vec_21, lambdaK2)) < 1e-12) {
+      std::cout << "Two sign-opposite lambdas: " << lambdaK2 << " and " << -lambdaK2 << "." << std::endl
+                << "First eigenvector: [";
+      for(const auto& elem : eigen_vec_21) {
+        std::cout << elem << " ";
+      }
+      std::cout << "]" << std::endl << "Second eigenvector: [";
+      for(const auto& elem : eigen_vec_22) {
+        std::cout << elem << " ";
+      }
+      std::cout << "]" << std::endl;;
       break;
     }
 
 /////// THIRD CASE
-    double r = -INT32_MAX;
-    double cos = -INT32_MAX;
     double vKM_norm = MaxNorm(vKM);
 
+    // Finding max index
+    int max_index = 0;
+    double max_value = -INT32_MAX;
+    for(int i = 0; i < n; ++i)
+      if (fabs(vKP[i]) > max_value) {
+        max_value = fabs(vKP[i]);
+        max_index = i;
+      }
+
     // Computing r & cos
-    for(int i = 0; i < n; ++i) {
-      double den_1 = uKMM[i] * vK[i] - uKM[i] * uKM[i] * vKM_norm;
-      if (std::abs(den_1) > 1e-8) {
-        double temp_r = sqrt((vKM[i] * vKP[i] * vK_norm - vK[i] * vK[i] * vKM_norm) / den_1);
-        if (temp_r > r) r = temp_r;
+    double r = sqrt(fabs(
+        (vKM[max_index] * vKP[max_index] * vK_norm - vK[max_index] * vK[max_index] * vKM_norm)
+            /
+                (uKMM[max_index] * vK[max_index] - uKM[max_index] * uKM[max_index] * vKM_norm)
+    ));
+    double cos = (vKP[max_index] * vK_norm + r * r * uKM[max_index]) / (2 * r * vK[max_index]);
+
+    if (fabs(cos) <= 1) {
+      double sin = sqrt(1 - cos * cos);
+      lambdaK31.real(r * cos);
+      lambdaK31.imag(r * sin);
+      lambdaK32.real(r * cos);
+      lambdaK32.imag(-r * sin);
+      for(int i = 0; i < n; ++i) {
+        eigen_vec_31[i] = vK[i] - lambdaK32 * uKM[i];
+        eigen_vec_32[i] = vK[i] - lambdaK31 * uKM[i];
+      }
+
+      // Computing Au1 & Au2
+      std::vector<std::complex<double>> Au1(n), Au2(n);
+      for(int i = 0; i < A.size(); ++i) {
+        std::complex<double> sum1(0, 0), sum2(0, 0);
+        for(int j = 0; j < A.size(); ++j) {
+          sum1 += A[i][j] * eigen_vec_31[j];
+          sum2 += A[i][j] * eigen_vec_32[j];
+        }
+        Au1[i] = sum1;
+        Au2[i] = sum2;
+      }
+
+      // Computing Au - Lu
+      double max_norm_1 = -INT32_MAX;
+      for(int i = 0; i < n; ++i) {
+        double temp_norm = std::abs(Au1[i] - lambdaK31 * eigen_vec_31[i]);
+        if (temp_norm >= max_norm_1) max_norm_1 = temp_norm;
+      }
+      if (max_norm_1 < 1e-8) {
+        std::cout << "Complex pair: " << "r = " << r << ", cos = " << cos << "." << std::endl
+                  << "First eigenvector: [";
+        for(const auto& elem : eigen_vec_31) {
+          std::cout << elem << " ";
+        }
+        std::cout << std::endl << "]" << std::endl << "Second eigenvector: [";
+        for(const auto& elem : eigen_vec_32) {
+          std::cout << elem << " ";
+        }
+        std::cout << "]" << std::endl;
+
+        break;
       }
     }
-    for(int i = 0; i < n; ++i) {
-      if (r > 1e-8 && std::abs(vK[i]) > 1e-8) {
-        double temp_cos = (vKP[i] * vK_norm + r * r * uKM[i]) / (2 * r * vK[i]);
-        if(std::abs(temp_cos) - 1 <= 1e-8)
-        if (std::abs(temp_cos) > cos) cos = temp_cos;
-      }
-    }
-
-    double sin = 1 - cos * cos;
-    lambdaK31.real(r * cos);
-    lambdaK31.imag(r * sin);
-    lambdaK32.real(r * cos);
-    lambdaK32.imag(-r * sin);
-    for(int i = 0; i < n; ++i) {
-      eigen_vec_31[i] = vK[i] - lambdaK32 * uKM[i];
-      eigen_vec_32[i] = vK[i] - lambdaK31 * uKM[i];
-    }
-
-    // Computing Au1
-    std::vector<std::complex<double>> Au1(n), Au2(n);
-    for(int i = 0; i < A.size(); ++i) {
-      std::complex<double> sum1(0, 0), sum2(0,0);
-      for(int j = 0; j < A.size(); ++j) {
-        sum1 += A[i][j] * eigen_vec_31[j];
-        sum2 += A[i][j] * eigen_vec_32[j];
-      }
-      Au1[i] = sum1;
-      Au2[i] = sum2;
-    }
-
-
-    // Computing Au - Lu
-    double max_norm_1 = -INT32_MAX;
-    for(int i = 0 ; i < n; ++i) {
-      double temp_norm = std::abs(Au1[i]-lambdaK31*eigen_vec_31[i]);
-      if(temp_norm >= max_norm_1) max_norm_1 = temp_norm;
-    }
-    if(max_norm_1 < 1e-8) {
-      std::cout << "r = " << r << ", cos = " << cos << std::endl;
-      break;
-    }
-
-    double max_norm_2 = -INT32_MAX;
-    for(int i = 0 ; i < n; ++i) {
-      double temp_norm = std::abs(Au2[i]-lambdaK32*eigen_vec_31[i]);
-      if(temp_norm >= max_norm_2) max_norm_2 = temp_norm;
-    }
-    if(max_norm_2 < 1e-8) {
-      std::cout << "r = " << r << ", cos = " << cos << std::endl;
-      break;
-    }
-
-
-
-
-
-
-
 
 /////// CHANGING STATUSES
     uKMM = uKM;
