@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include "t.h"
 
 #define matrix std::vector<std::vector<double>>
 
