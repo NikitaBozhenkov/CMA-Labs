@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <ctime>
 
 #define matrix std::vector<std::vector<double>>
 
@@ -15,12 +16,17 @@ void PrintMatrix(const matrix& m) {
 }
 
 bool CheckStop(const matrix& m) {
-  for(int i = 0; i < m.size() - 2; ++i)
+  bool prev_is_block = false;
+  for(int i = 0; i < m.size() - 2; ++i) {
     if (fabs(m[i + 1][i]) > 1e-8) {
-      double d_sum = m[i][i] * m[i][i] + m[i + 1][i + 1];
-      if ((d_sum * d_sum - 4 * (m[i][i] * m[i + 1][i + 1] - m[i][i + 1] * m[i + 1][i])) > 0)
+      if (prev_is_block) return false;
+      prev_is_block = true;
+      double d_sum = m[i][i] + m[i + 1][i+1];
+      if ((d_sum * d_sum - 4 * (m[i][i] * m[i + 1][i + 1] - m[i][i + 1] * m[i + 1][i])) > 0) {
         return false;
-    }
+      }
+    } else prev_is_block = false;
+  }
   return true;
 }
 
@@ -43,6 +49,8 @@ int main() {
     for(int j = i + 1; j < n; ++j)
       if (A[i][j] != A[j][i]) symmetric = false;
 
+  clock_t start_time = clock();
+
 ////// Making Hessenberg
   for(int i = 0; i < n - 2; ++i)
     for(int j = i + 2; j < n; ++j) {
@@ -54,7 +62,7 @@ int main() {
       double cos = A[i + 1][i] / den;
       double sin = A[j][i] / den;
 
-////// QA
+/// QA
       std::vector<double> k_row = A[i + 1];
       std::vector<double> l_row = A[j];
       std::vector<double> Q_k_row = Q[i + 1];
@@ -67,7 +75,7 @@ int main() {
         Q[j][t] = -Q_k_row[t] * sin + Q_l_row[t] * cos;
       }
 
-////// AQ^T
+/// AQ^T
       std::vector<double> col(n);
 
       for(int t = 0; t < n; t++) {
@@ -77,9 +85,6 @@ int main() {
       for(int t = 0; t < n; t++)
         A[t][j] = -col[t] * sin + A[t][j] * cos;
     }
-  PrintMatrix(A);
-  std::cout << "Q:" << std::endl;
-  PrintMatrix(Q);
 
 ////// QR
   while (!CheckStop(A)) {
@@ -107,6 +112,7 @@ int main() {
         A[i + 1][t] = i_row[t] * sin + ip_row[t] * cos;
         Q[i + 1][t] = Q_i_row[t] * sin + Q_ip_row[t] * cos;
       }
+
     }
 
     // Reverse multiplication
@@ -119,8 +125,10 @@ int main() {
       }
     }
   }
-  PrintMatrix(A);
+  clock_t end_time = clock();
 
+  long double search_time = (long double) (end_time - start_time) / CLOCKS_PER_SEC;
+  std::cout << "Time: " <<  search_time << std::endl;
 
 ///// Finding values and optionally vectors
   for(int i = 0; i < n; ++i) {
@@ -129,7 +137,7 @@ int main() {
       double sqrt_D = sqrt(-((a + d) * (a + d) - 4 * (a * d - b * c)));
       double real = (a + d) / 2;
       double image = sqrt_D / 2;
-      std::cout << "Complex pair: (" << real << " +- " << image << "i" << ")" << std::endl;
+      std::cout << "Complex pair: (" << real << " +- " << image << "i" << ")";
       ++i;
     } else std::cout << "Eigenvalue: (" << A[i][i] << ")";
     if (symmetric) {

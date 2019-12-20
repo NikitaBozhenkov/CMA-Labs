@@ -61,6 +61,17 @@ int main() {
       std::cin >> A[i][j];
     }
   }
+
+  for(int i = 0; i < n; ++i) {
+    for(int j = 0; j < n; ++j)
+      if (j != n - 1)
+        std::cout << A[i][j] << " & ";
+      else std::cout << A[i][j];
+    if (i != n - 1)
+      std::cout << " \\\\" << std::endl;
+    else std::cout << std::endl;
+  }
+
   std::vector<double> uKMM(n), uKM(n), uK(n), uKP(n), vKMM(n), vKM(n), vK(n), vKP(n),
       eigen_vec_21(n), eigen_vec_22(n);
   std::vector<std::complex<double>> eigen_vec_31(n), eigen_vec_32(n);
@@ -107,7 +118,7 @@ int main() {
     if (MaxNorm(ComputeAvMinusLvNorm(A, uK, lambdaK1)) < 1e-12) {
       std::cout << "One lambda: " << lambdaK1 << "." << std::endl << "Eigenvector: [";
       for(const auto& elem : uK) {
-        std::cout << elem << " ";
+        std::cout << elem << " \\\\ ";
       }
       std::cout << "]" << std::endl;
       break;
@@ -196,14 +207,14 @@ int main() {
         if (temp_norm >= max_norm_1) max_norm_1 = temp_norm;
       }
       if (max_norm_1 < 1e-8) {
-        std::cout << "Complex pair: " << "r = " << r << ", cos = " << cos << "." << std::endl
+        std::cout << "Complex pair: " << lambdaK31.real() << "+-" << lambdaK31.imag() << "i" << std::endl
                   << "First eigenvector: [";
         for(const auto& elem : eigen_vec_31) {
-          std::cout << elem << " ";
+          std::cout << elem << " \\\\ ";
         }
         std::cout << std::endl << "]" << std::endl << "Second eigenvector: [";
         for(const auto& elem : eigen_vec_32) {
-          std::cout << elem << " ";
+          std::cout << elem << " \\\\ ";
         }
         std::cout << "]" << std::endl;
 

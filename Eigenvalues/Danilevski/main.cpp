@@ -6,7 +6,7 @@
 
 #define matrix std::vector<std::vector<double>>
 
-double polinom(int n, double x, double* k) {
+double ComputePolValue(int n, double x, double* k) {
   double s = 1;
   for(int i = n - 1; i >= 0; i--)
     s = s * x + k[i];
@@ -14,12 +14,40 @@ double polinom(int n, double x, double* k) {
 }
 
 double dihot(int degree, double edgeNegativ, double edgePositiv, double* kf) {
+  double x;
+  double check;
   for(;;) {
-    double x = 0.5 * (edgeNegativ + edgePositiv);
-    if (x == edgeNegativ || x == edgePositiv)return x;
-    if (polinom(degree, x, kf) < 0)edgeNegativ = x;
+    x = 0.5 * (edgeNegativ + edgePositiv);
+    if (fabs(x - edgeNegativ) < 1e-5) {
+      check = edgePositiv;
+      break;
+    } else if (fabs(x - edgePositiv) < 1e-5) {
+      check = edgeNegativ;
+      break;
+    }
+    if (ComputePolValue(degree, x, kf) < 0)edgeNegativ = x;
     else edgePositiv = x;
   }
+
+  double pol[degree];
+  for(int i = 0; i < degree; ++i) {
+    pol[i] = kf[i];
+  }
+  double pol_first_der[degree-1];
+  for(int i = 0; i < degree-1; ++i) {
+    pol_first_der[i] = pol[i+1] * (i+1);
+  }
+  double pol_second_der[degree-2];
+  for(int i = 0; i < degree-2; ++i) {
+    pol_second_der[i] = pol_first_der[i+1] * (i+1);
+  }
+
+  if(ComputePolValue(degree,check,pol) * ComputePolValue(degree-2,check,pol_second_der) < 1e-8) {
+  while(ComputePolValue(degree, x, pol) > 1e-2) {
+    x = x - ComputePolValue(degree,x,pol) / ComputePolValue(degree-1,x,pol_first_der);
+  }
+  return check;
+  } else return x;
 }
 
 void stepUp(int level, double** A, double** B, int* currentRootsCount) {
@@ -40,7 +68,7 @@ void stepUp(int level, double** A, double** B, int* currentRootsCount) {
     if (i == 0)edgeLeft = -major;
     else edgeLeft = B[level - 1][i - 1];
 
-    double rb = polinom(level, edgeLeft, A[level]);
+    double rb = ComputePolValue(level, edgeLeft, A[level]);
 
     if (rb == 0) {
       B[level][currentRootsCount[level]] = edgeLeft;
@@ -52,7 +80,7 @@ void stepUp(int level, double** A, double** B, int* currentRootsCount) {
     if (i == currentRootsCount[level - 1])edgeRight = major;
     else edgeRight = B[level - 1][i];
 
-    rb = polinom(level, edgeRight, A[level]);
+    rb = ComputePolValue(level, edgeRight, A[level]);
 
     if (rb == 0) {
       B[level][currentRootsCount[level]] = edgeRight;
@@ -118,7 +146,7 @@ std::vector<double> MatrixMulVec(const matrix& A, const std::vector<double>& vec
   return res;
 }
 
-void PrintMatrix(const matrix m) {
+void PrintMatrix(const matrix& m) {
   for(int i = 0; i < m.size(); ++i) {
     for(int j = 0; j < m.size(); ++j) {
       std::cout << m[i][j] << " ";
@@ -235,8 +263,6 @@ int main() {
 
     }
   }
-  std::cout << "E:" << std::endl;
-  PrintMatrix(E);
   for(const auto& elem : roots) {
     std::cout << "Root - " << elem.first << ", d = " << elem.second;
     if (elem.second == 1 || polynoms.size() == 1) {
